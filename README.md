@@ -10,6 +10,20 @@ PNG, JPEG, TIFF, BMP y WebP.
 
 *Izquierda: plano original. Derecha: salida del filtro.*
 
+## Flujos
+
+### Producción: llega un plano nuevo
+
+![Flujo de producción](docs/img/flujo_produccion.png)
+
+### Entrenamiento
+
+![Flujo de entrenamiento](docs/img/flujo_entrenamiento.png)
+
+Fuentes editables (Mermaid) en [docs/diagramas/](docs/diagramas/). Los diagramas de secuencia,
+estados y tablas están en [docs/SISTEMA.md](docs/SISTEMA.md). Para regenerar las imágenes:
+`npx @mermaid-js/mermaid-cli -i docs/diagramas/flujo_produccion.mmd -o docs/img/flujo_produccion.png -b white -s 2`.
+
 ## Antes y después
 
 Ocho planos elegidos al azar entre los de medición (nunca usados para ajustar), dos por estilo

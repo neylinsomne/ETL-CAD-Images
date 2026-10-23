@@ -1,0 +1,26 @@
+flowchart TB
+    U["Llega un plano nuevo<br/>PDF, JPG, PNG, TIFF, BMP, WebP"] -->|"POST /v1/planos"| API["API"]
+    API --> DUP{"¿Ya se subió?<br/>(sha256)"}
+    DUP -->|"sí"| OLD["Devuelve el plano existente"]
+    DUP -->|"no"| S3O[("S3<br/>original")]
+    API --> PGA[("Postgres<br/>plano en_cola")]
+    S3O --> Q[["Redis<br/>cola de ingesta"]]
+    Q --> W["Worker"]
+    W --> PAG["Separar en páginas<br/>PDF por página, TIFF, EXIF, transparencia"]
+    PAG --> FIL["Filtro con la versión activa de parámetros"]
+    FIL --> LIM["Límite exterior del edificio"]
+    LIM --> COL["Colorear trazos del límite<br/>rosado muro, azul vidrio"]
+    COL --> EST{"Estado de la página"}
+    EST -->|"ok"| OUT[("S3<br/>color, etiquetas, hints")]
+    EST -->|"cropped, no_footprint, too_dark"| REV["Revisión o descarte<br/>en el funnel"]
+    COL --> PGB[("Postgres<br/>estado y métricas")]
+    W -.->|"si falla"| FAIL[["Redis<br/>fallidos"]]
+    OUT --> DF["D-FINE afinado con imágenes coloreadas<br/>detecta ventanas, puertas"]
+    DF --> RES["Resultado para el siguiente paso del ETL"]
+
+    classDef ext fill:#eef3ff,stroke:#5b7bd5,color:#1b2a4a
+    classDef paso fill:#fff4fa,stroke:#d6418f,color:#4a1030
+    classDef fuera fill:#f3f3f3,stroke:#999,color:#333,stroke-dasharray: 4 3
+    class S3O,PGA,Q,OUT,PGB,FAIL ext
+    class PAG,FIL,LIM,COL paso
+    class DF,RES fuera

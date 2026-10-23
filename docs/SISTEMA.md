@@ -50,25 +50,33 @@ Redis, PgBouncer, Postgres con pgvector y S3 se asumen existentes: el código so
 direcciones (`.env.example`). Para desarrollo y pruebas cada uno tiene reemplazo local: cola en
 línea (procesa al recibir), disco y memoria.
 
-## Flujo de ingesta
+## Flujo de producción: llega un plano nuevo
+
+Fuente: [diagramas/flujo_produccion.mmd](diagramas/flujo_produccion.mmd).
 
 ```mermaid
-flowchart LR
-    C["Cliente o proceso de ingesta"] -->|"POST /v1/planos"| API
-    API -->|"original"| S3o[("S3 originales/")]
-    API -->|"plano en_cola"| PG[("Postgres")]
-    API -->|"procesar_plano"| R[["Redis: ingesta"]]
-    R --> W["Worker"]
-    S3o --> W
-    W --> I["Formato a páginas"]
-    I --> A["Flujo A: límite por reglas"]
-    B["Flujo B: segmentador de trazos (pendiente)"] -.-> CL
-    A --> CL["Coloreado: rosado muro, azul vidrio"]
-    CL -->|"color, etiquetas, hints"| S3p[("S3 procesado/")]
-    CL -->|"estado y métricas"| PG
-    R -.->|"si falla"| F[["Redis: fallidos"]]
-    S3p --> V["Modelos de visión (D-FINE)"]
+flowchart TB
+    U["Llega un plano nuevo<br/>PDF, JPG, PNG, TIFF, BMP, WebP"] -->|"POST /v1/planos"| API["API"]
+    API --> DUP{"¿Ya se subió?<br/>(sha256)"}
+    DUP -->|"sí"| OLD["Devuelve el plano existente"]
+    DUP -->|"no"| S3O[("S3<br/>original")]
+    API --> PGA[("Postgres<br/>plano en_cola")]
+    S3O --> Q[["Redis<br/>cola de ingesta"]]
+    Q --> W["Worker"]
+    W --> PAG["Separar en páginas<br/>PDF por página, TIFF, EXIF, transparencia"]
+    PAG --> FIL["Filtro con la versión activa de parámetros"]
+    FIL --> LIM["Límite exterior del edificio"]
+    LIM --> COL["Colorear trazos del límite<br/>rosado muro, azul vidrio"]
+    COL --> EST{"Estado de la página"}
+    EST -->|"ok"| OUT[("S3<br/>color, etiquetas, hints")]
+    EST -->|"cropped, no_footprint, too_dark"| REV["Revisión o descarte<br/>en el funnel"]
+    COL --> PGB[("Postgres<br/>estado y métricas")]
+    W -.->|"si falla"| FAIL[["Redis<br/>fallidos"]]
+    OUT --> DF["D-FINE afinado con imágenes coloreadas<br/>detecta ventanas, puertas"]
+    DF --> RES["Resultado para el siguiente paso del ETL"]
 ```
+
+D-FINE no corre dentro de la ingesta: consume las imágenes coloreadas en el paso siguiente.
 
 ```mermaid
 sequenceDiagram
@@ -123,22 +131,39 @@ al reducir, el vidrio se aclara y desaparece (en CVC-FP pasa de gris 0 a gris 13
 
 ## Flujo de entrenamiento
 
+Fuente: [diagramas/flujo_entrenamiento.mmd](diagramas/flujo_entrenamiento.mmd).
+
 ```mermaid
 flowchart TB
-    DS["Datasets anotados: CubiCasa5K, CVC-FP, FloorPlanCAD"] --> BD["build_dataset.py: parquet y COCO"]
-    BD --> SP["Partición 30/70 por estilo de dibujo"]
-    SP --> TU["ajuste_parametros: iteraciones sobre el 30 %"]
-    TU --> M70["Medición en el 70 %"]
-    M70 --> RP["Versión de parámetros en el registro"]
-    SP --> DD["dataset_dfine: planos anotados coloreados + COCO"]
-    RP -->|"activar"| DD
-    DD --> DF["Afinar D-FINE con imágenes coloreadas"]
-    SP --> TB["segmentador_trazos: flujo B (pendiente)"]
-    TB --> MB["Medición en el 70 % por caso"]
-    MB --> RB["Versión del segmentador en el registro"]
-    RP -->|"activar"| WK["Workers usan la versión activa"]
-    RB -.->|"activar"| WK
+    subgraph DATOS["Datos"]
+        DS["Planos anotados<br/>CubiCasa5K, CVC-FP, FloorPlanCAD"] --> BD["build_dataset<br/>tablas y cajas COCO"]
+        BD --> SP["Partición por estilo de dibujo<br/>30 % ajuste, 70 % medición"]
+    end
+
+    subgraph FILTRO["1. Ajustar el filtro (POST /v1/entrenamientos, ajuste_parametros)"]
+        SP --> IT["Iterar parámetros sobre el 30 %"]
+        IT --> ME["Medir en el 70 %<br/>F1 balanceado por estilo"]
+        ME --> OK1{"¿Mejora?"}
+        OK1 -->|"no"| IT
+        OK1 -->|"sí"| VP["Nueva versión de parámetros<br/>registro de modelos"]
+    end
+
+    subgraph DETECTOR["2. Afinar D-FINE"]
+        VP --> EXP["Exportar dataset coloreado con la versión activa<br/>(POST /v1/entrenamientos, dataset_dfine)"]
+        EXP --> TR["Afinar D-FINE con el 30 %<br/>(repositorio de D-FINE)"]
+        TR --> EV["Evaluar en el 70 %"]
+        EV --> OK2{"¿Supera a la versión actual?"}
+        OK2 -->|"no"| TR
+        OK2 -->|"sí"| VD["Nueva versión de D-FINE"]
+    end
+
+    VP -->|"POST /v1/modelos/id/activar"| PROD["Producción<br/>workers y D-FINE usan las versiones activas"]
+    VD -->|"activar"| PROD
+    SEG["Flujo B: segmentador de trazos<br/>(pendiente)"] -.-> PROD
 ```
+
+El paso "Afinar D-FINE" se hace con el repositorio de D-FINE sobre el dataset exportado; este
+repositorio exporta el dataset y registra las versiones.
 
 ```mermaid
 sequenceDiagram

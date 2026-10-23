@@ -1,0 +1,35 @@
+flowchart TB
+    subgraph DATOS["Datos"]
+        DS["Planos anotados<br/>CubiCasa5K, CVC-FP, FloorPlanCAD"] --> BD["build_dataset<br/>tablas y cajas COCO"]
+        BD --> SP["Partición por estilo de dibujo<br/>30 % ajuste, 70 % medición"]
+    end
+
+    subgraph FILTRO["1. Ajustar el filtro (POST /v1/entrenamientos, ajuste_parametros)"]
+        SP --> IT["Iterar parámetros sobre el 30 %"]
+        IT --> ME["Medir en el 70 %<br/>F1 balanceado por estilo"]
+        ME --> OK1{"¿Mejora?"}
+        OK1 -->|"no"| IT
+        OK1 -->|"sí"| VP["Nueva versión de parámetros<br/>registro de modelos"]
+    end
+
+    subgraph DETECTOR["2. Afinar D-FINE"]
+        VP --> EXP["Exportar dataset coloreado con la versión activa<br/>(POST /v1/entrenamientos, dataset_dfine)"]
+        EXP --> TR["Afinar D-FINE con el 30 %<br/>(repositorio de D-FINE)"]
+        TR --> EV["Evaluar en el 70 %"]
+        EV --> OK2{"¿Supera a la versión actual?"}
+        OK2 -->|"no"| TR
+        OK2 -->|"sí"| VD["Nueva versión de D-FINE"]
+    end
+
+    VP -->|"POST /v1/modelos/id/activar"| PROD["Producción<br/>workers y D-FINE usan las versiones activas"]
+    VD -->|"activar"| PROD
+    SEG["Flujo B: segmentador de trazos<br/>(pendiente)"] -.-> PROD
+
+    classDef dato fill:#eef3ff,stroke:#5b7bd5,color:#1b2a4a
+    classDef paso fill:#fff4fa,stroke:#d6418f,color:#4a1030
+    classDef prod fill:#eafaf0,stroke:#2e9d5b,color:#123d24
+    classDef pend fill:#f3f3f3,stroke:#999,color:#333,stroke-dasharray: 4 3
+    class DS,BD,SP dato
+    class IT,ME,VP,EXP,TR,EV,VD paso
+    class PROD prod
+    class SEG pend
