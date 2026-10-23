@@ -1,4 +1,5 @@
-from conftest import WALL, WINDOW, X1, Y1, Y2
+import cv2
+from conftest import WALL, WINDOW, X1, Y1, Y2, synthetic_plan
 
 from filtro_planos.envelope import EnvelopeParams
 from filtro_planos.pipeline import page_outputs, page_record, process_page
@@ -14,6 +15,20 @@ def test_boundary_strokes_get_two_classes_and_interior_stays_uncolored(plan_gray
     assert result.labels[Y2 - WALL // 2, (WINDOW[0] + WINDOW[1]) // 2] == GLASS  # línea de vidrio
     assert result.labels[275, 299] == 0  # muro interior, lejos del límite
     assert result.labels[275, 200] == 0  # interior vacío
+
+
+def test_window_drawn_in_black_is_glass_by_low_ink_density():
+    """Estilo CVC-FP: muro macizo negro y ventana como rectángulo de líneas negras finas."""
+    img = synthetic_plan()
+    x0, x1 = 360, 440
+    img[Y1 : Y1 + WALL, x0:x1] = 255  # vano en el muro superior
+    cv2.rectangle(img, (x0, Y1), (x1 - 1, Y1 + WALL - 1), 0, 1)  # marco de la ventana
+    img[Y1 + WALL // 2, x0:x1] = 0  # vidrio, también negro
+
+    result = process_page(img, EnvelopeParams())
+
+    assert result.labels[Y1 + WALL // 2, 400] == GLASS
+    assert result.labels[Y1 + WALL // 2, 250] == WALL_LABEL  # el muro macizo sigue rosado
 
 
 def test_only_stroke_pixels_are_painted_so_line_width_is_kept(plan_gray):

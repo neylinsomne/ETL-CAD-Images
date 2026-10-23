@@ -6,7 +6,7 @@ para el muro exterior, azul para el vidrio en el límite (ventanas, muros cortin
 coloreadas son la entrada con la que se entrenan y usan detectores como D-FINE. Acepta PDF,
 PNG, JPEG, TIFF, BMP y WebP.
 
-![Antes y después](docs/img/antes_despues/cvc_fp_IIa_TD0810.jpg)
+![Antes y después](data/output/muestra/antes_despues/cvc_fp_IIa_TD0810.jpg)
 
 *Izquierda: plano original. Derecha: salida del filtro.*
 
@@ -31,16 +31,23 @@ de dibujo. F1 del límite exterior contra la anotación manual.
 
 | Plano | Estilo | Estado | F1 |
 |---|---|---|---|
-| [CubiCasa5K 14565](docs/img/antes_despues/cubicasa5k_colorful_14565.jpg) | colorful | ok | 0,94 |
-| [CubiCasa5K 14887](docs/img/antes_despues/cubicasa5k_colorful_14887.jpg) | colorful | ok | 0,76 |
-| [CVC-FP LZ1101](docs/img/antes_despues/cvc_fp_IIa_LZ1101.jpg) | CVC-FP | ok | 0,94 |
-| [CVC-FP TD0810](docs/img/antes_despues/cvc_fp_IIa_TD0810.jpg) | CVC-FP | ok | 0,85 |
-| [CubiCasa5K 4773](docs/img/antes_despues/cubicasa5k_high_quality_4773.jpg) | high_quality | ok | 0,83 |
-| [CubiCasa5K 665](docs/img/antes_despues/cubicasa5k_high_quality_665.jpg) | high_quality | ok | 0,66 |
-| [CubiCasa5K 7813](docs/img/antes_despues/cubicasa5k_high_quality_architectural_7813.jpg) | architectural | cropped | 0,72 |
-| [CubiCasa5K 3528](docs/img/antes_despues/cubicasa5k_high_quality_architectural_3528.jpg) | architectural | cropped | 0,47 |
+| [CubiCasa5K 14565](data/output/muestra/antes_despues/cubicasa5k_colorful_14565.jpg) | colorful | ok | 0,94 |
+| [CubiCasa5K 14887](data/output/muestra/antes_despues/cubicasa5k_colorful_14887.jpg) | colorful | ok | 0,76 |
+| [CVC-FP LZ1101](data/output/muestra/antes_despues/cvc_fp_IIa_LZ1101.jpg) | CVC-FP | ok | 0,94 |
+| [CVC-FP TD0810](data/output/muestra/antes_despues/cvc_fp_IIa_TD0810.jpg) | CVC-FP | ok | 0,85 |
+| [CubiCasa5K 4773](data/output/muestra/antes_despues/cubicasa5k_high_quality_4773.jpg) | high_quality | ok | 0,83 |
+| [CubiCasa5K 665](data/output/muestra/antes_despues/cubicasa5k_high_quality_665.jpg) | high_quality | ok | 0,66 |
+| [CubiCasa5K 7813](data/output/muestra/antes_despues/cubicasa5k_high_quality_architectural_7813.jpg) | architectural | cropped | 0,72 |
+| [CubiCasa5K 3528](data/output/muestra/antes_despues/cubicasa5k_high_quality_architectural_3528.jpg) | architectural | cropped | 0,47 |
 
-Se regeneran con `python scripts/make_sample.py`.
+Todo está en [data/output/muestra/](data/output/muestra/) y se regenera con
+`python scripts/make_sample.py`:
+
+- `antes_despues/`: original y salida lado a lado, una imagen por plano.
+- `<plano>_color.png`, `_etiquetas.png`, `_hints.png`: las salidas del filtro a resolución completa.
+- `muestra_mosaico.jpg` y `muestra.csv`: los 8 planos juntos y sus métricas.
+- `muestra_mosaico_version_inicial.jpg`: la primera versión del filtro (banda gruesa en lugar
+  de trazos), para comparar.
 
 ## Documentación
 
@@ -113,9 +120,11 @@ python scripts/make_sample.py        # mosaico y antes/después en data/output/m
 
 ## Métricas
 
-- 44 pruebas, cobertura 72 % (límite exterior 97 %, ingesta 96 %, coloreado 95 %, API 94 %).
+- 45 pruebas, cobertura 72 % (límite exterior 97 %, ingesta 96 %, coloreado 95 %, API 94 %).
 - Límite exterior: F1 mediano 0,783 balanceado por estilo de dibujo, en el 70 % de medición
   (3.584 planos que no se usaron para ajustar).
+- Coloreado por clase, a nivel de trazo (385 planos del 70 %): muro 0,75, vidrio 0,34. El
+  vidrio es la parte débil: el flujo B apunta a eso.
 - 0,18 s por página (mediana) en CPU.
 
 Detalle en [docs/SISTEMA.md](docs/SISTEMA.md).
@@ -123,7 +132,7 @@ Detalle en [docs/SISTEMA.md](docs/SISTEMA.md).
 ## Licencias
 
 Los tres datasets de referencia tienen licencia no comercial. Sirven para investigar y medir;
-un producto necesita planos propios o con licencia. Las imágenes de `docs/img/antes_despues`
+un producto necesita planos propios o con licencia. Las imágenes de `data/output/muestra`
 derivan de CVC-FP (CC BY-NC 4.0) y CubiCasa5K (CC BY-NC-SA 4.0).
 
 ## Fuentes

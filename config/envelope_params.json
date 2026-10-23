@@ -21,5 +21,9 @@
     "window",
     "door",
     "curtain_wall"
-  ]
+  ],
+  "glass_min_gray": 115,
+  "stroke_faint_contrast": 30,
+  "glass_density_ratio": 0.75,
+  "glass_density_window": 1.5
 }

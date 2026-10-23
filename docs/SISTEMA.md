@@ -280,13 +280,13 @@ Garantías:
 
 ## Métricas
 
-Pruebas (`pytest --cov=filtro_planos`): 44 pruebas, todas pasan; cobertura total 72 %.
+Pruebas (`pytest --cov=filtro_planos`): 45 pruebas, todas pasan; cobertura total 72 %.
 
 | Módulo | Cobertura | Qué cubren las pruebas |
 |---|---|---|
 | `envelope.py` | 97 % | Vano, esquina curva, muro a doble línea, vidriera tenue, porche con postes, plano recortado, plano oscuro |
 | `ingest.py` | 96 % | PDF de varias páginas, TIFF, EXIF, transparencia, 16 bits, formato no soportado, tamaño máximo |
-| `strokes.py` | 95 % | Dos clases en el límite, interior sin color, grosor del trazo intacto |
+| `strokes.py` | 95 % | Dos clases en el límite, ventana dibujada en negro, interior sin color, grosor del trazo intacto |
 | `service/api.py` | 94 % | Ingesta, duplicados, PDF, errores 404, 415, 422 y 501, entrenamiento, activación |
 | `infra/storage.py` | 92 % | Disco y S3 (simulado con moto) |
 | `infra/queue.py` | 86 % | Cola en línea y Redis Streams (simulado con fakeredis), cola de fallidos |
@@ -304,6 +304,18 @@ Calidad del límite exterior, F1 mediano en el 70 % de medición (3.584 planos),
 | high_quality | 0,774 | 0,816 |
 | architectural | 0,614 | 0,675 |
 | Balanceado | 0,738 | 0,783 |
+
+Coloreado por clase, a nivel de trazo, contra muros y ventanas exteriores anotados (385 planos
+del 70 %, F1 mediano balanceado por estilo):
+
+| Regla | Muro (rosado) | Vidrio (azul) | Vidrio en CVC-FP |
+|---|---|---|---|
+| Solo tono (vidrio = trazo claro) | 0,739 | 0,202 | 0,045 |
+| Tono + densidad de tinta (`glass_density_ratio` 0,75, elegido en el 30 %) | 0,750 | 0,339 | 0,487 |
+
+La regla de densidad marca como vidrio el tramo del límite con mucha menos tinta que lo típico
+del plano: es lo que separa una ventana dibujada en negro de un muro macizo. La precisión del
+azul sigue baja (0,21): también se pintan puertas y trazos pegados al límite.
 
 Rendimiento: 0,08 a 0,33 s por página (mediana 0,18 s) en CPU, medido en la muestra de 8 planos.
 

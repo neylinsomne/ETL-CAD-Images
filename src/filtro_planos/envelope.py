@@ -66,6 +66,10 @@ class EnvelopeParams:
     # En CubiCasa5K/CVC-FP el gris mediano del vidrio es 122-160 y el del muro 0-105.
     glass_min_gray: int = 115
     stroke_faint_contrast: int = 30  # el vidrio suele ser tenue: siempre se buscan líneas tenues al colorear
+    # Tramo con menos de esta fracción de la tinta típica = vidrio (0 = no). 0,75 elegido en el 30 %;
+    # en el 70 % subió el F1 del vidrio de 0,20 a 0,34 (CVC-FP de 0,05 a 0,49) y el del muro de 0,74 a 0,75.
+    glass_density_ratio: float = 0.75
+    glass_density_window: float = 1.5  # tamaño de la ventana de densidad, en grosores de muro
     min_footprint_frac: float = 0.02
     max_footprint_frac: float = 0.95
     min_component_frac: float = 0.1  # huellas secundarias >= 10% de la mayor
