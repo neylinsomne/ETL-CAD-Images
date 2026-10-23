@@ -1,0 +1,25 @@
+{
+  "max_side": 1600,
+  "keep_thin_lines": false,
+  "faint_line_contrast": 30,
+  "max_ink_level": 160,
+  "max_ink_frac": 0.35,
+  "max_wall_frac": 0.05,
+  "min_component_area_frac": 2e-05,
+  "cavity_radius_frac": 0.006,
+  "thin_stroke_factor": 0.35,
+  "bridge_factor": 10.0,
+  "cropped_factor": 1.5,
+  "gap_factor": 1.5,
+  "depth_factor": 1.25,
+  "corner_fill": true,
+  "min_footprint_frac": 0.02,
+  "max_footprint_frac": 0.95,
+  "min_component_frac": 0.1,
+  "simplify_tolerance_px": 1.5,
+  "opening_labels": [
+    "window",
+    "door",
+    "curtain_wall"
+  ]
+}

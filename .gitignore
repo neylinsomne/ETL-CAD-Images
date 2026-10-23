@@ -1,0 +1,37 @@
+# Datos: se descargan y generan con scripts/ (no van al repositorio)
+data/raw/
+data/processed/
+data/input/
+data/output/
+data/store/
+
+# Pesos de modelos (se montan en /models)
+models/**/*.pth
+models/**/*.pt
+models/**/*.onnx
+models/**/*.yml
+
+# Secretos y configuración local
+.env
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+build/
+dist/
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini

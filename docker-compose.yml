@@ -1,0 +1,28 @@
+# API, workers de ingesta y trainer. Redis, Postgres (detrás de PgBouncer) y S3 son servicios
+# externos: sus direcciones vienen de .env (copiar .env.example).
+services:
+  api:
+    build: .
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/models:ro
+
+  worker:
+    build: .
+    env_file: .env
+    command: ["python", "-m", "filtro_planos.service.worker"]
+    deploy:
+      replicas: 2
+    volumes:
+      - ./models:/models:ro
+
+  # Necesita los datasets anotados en ./data (scripts/download_data.py y build_dataset.py)
+  trainer:
+    build: .
+    env_file: .env
+    command: ["python", "-m", "filtro_planos.service.trainer"]
+    volumes:
+      - ./data:/app/data
+      - ./models:/models:ro
