@@ -3,9 +3,11 @@ data/raw/
 data/processed/
 data/input/
 data/store/
-# De data/output solo se versiona la muestra (antes y después, mosaicos y salidas de 8 planos)
+# De data/output se ignora todo menos la muestra, que sí se sube:
+# antes y después, mosaicos y salidas de 8 planos
 data/output/*
 !data/output/muestra/
+!data/output/muestra/antes_despues/
 
 # Pesos de modelos (se montan en /models)
 models/**/*.pth
