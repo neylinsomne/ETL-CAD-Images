@@ -131,6 +131,8 @@ Detalle en [docs/SISTEMA.md](docs/SISTEMA.md).
 
 ## Licencias
 
+El código es MIT (ver [LICENSE](LICENSE)).
+
 Los tres datasets de referencia tienen licencia no comercial. Sirven para investigar y medir;
 un producto necesita planos propios o con licencia. Las imágenes de `data/output/muestra`
 derivan de CVC-FP (CC BY-NC 4.0) y CubiCasa5K (CC BY-NC-SA 4.0).

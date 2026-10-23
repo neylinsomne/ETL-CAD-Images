@@ -1,11 +1,13 @@
 [build-system]
-requires = ["setuptools>=69"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "filtro-planos"
 version = "0.2.0"
 description = "Paso de ingesta que encuentra el límite exterior de planos y colorea sus trazos (muro y vidrio)."
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = [
     "numpy>=1.26",
